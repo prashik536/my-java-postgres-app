@@ -1,17 +1,16 @@
-# Use an official Maven image to build the app
+# Build stage
 FROM maven:3.8.4-openjdk-11-slim AS build
 
 WORKDIR /app
-COPY pom.xml .
-RUN mvn dependency:go-offline
+COPY . .
 
-COPY src /app/src
-RUN mvn package
+# Build the application
+RUN mvn clean package -DskipTests
 
-# Use OpenJDK to run the app
+# Runtime stage
 FROM openjdk:11-jre-slim
 
 WORKDIR /app
-COPY --from=build /app/target/my-java-app.jar /app/my-java-app.jar
+COPY --from=build /app/target/*.jar /app/app.jar
 
-ENTRYPOINT ["java", "-jar", "/app/my-java-app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
